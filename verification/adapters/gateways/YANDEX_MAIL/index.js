@@ -11,7 +11,7 @@ const revoceryCodeMaxValue = (10 ** recoveryCodeLength - 1);
 const codeGenerator = () => Math.round(Math.random() * revoceryCodeMaxValue).toString().padStart(recoveryCodeLength, '0'); // cryptographically weak?
 
 
-
+ 
 /** HTML-макет письма на почту, с самим кодом */
 const accountVerifyBody = ({ verificationCode }) => `\
     <p>Для верификации своей учётной записи в личном кабинете «Юрта» используйте код <b>${verificationCode}</b>.

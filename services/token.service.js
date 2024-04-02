@@ -60,7 +60,7 @@ const getTokenData = (bearer) => {
     return tokenData;
 }
 
-
+ 
 /**
  * Генерация пар токенов: accessToken и refreshToken
  * @param {object} body - данные запроса, тело и строка

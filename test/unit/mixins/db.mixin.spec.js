@@ -39,7 +39,7 @@ describe("Test DB mixin", () => {
 
 				schema.adapter.count = jest.fn(async () => 10);
 				const seedDBFn = jest.fn();
-
+ 
 				await schema.started.call({ broker, logger: broker.logger, adapter: schema.adapter, seedDB: seedDBFn });
 
 				expect(schema.adapter.count).toBeCalledTimes(1);

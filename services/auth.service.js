@@ -83,7 +83,7 @@ module.exports = {
          * @param {string} password
          * 
          * @return {object} result
-         */
+         */ 
         login: {
             rest: {
 				method: "POST",

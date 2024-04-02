@@ -46,7 +46,7 @@ services:
       - mqtt
     networks:
       - internal
-
+ 
   mongo:
     image: mongo:4
     volumes:

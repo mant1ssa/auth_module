@@ -9,7 +9,7 @@ data:
   NAMESPACE: ""
   LOGLEVEL: info
   SERVICEDIR: services
-  
+   
   
   TRANSPORTER: mqtt://mqtt:1883
   

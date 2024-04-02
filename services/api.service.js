@@ -9,7 +9,7 @@ const ApiGateway = require("moleculer-web");
  * @typedef {import('http').ServerResponse} ServerResponse HTTP Server Response
  * @typedef {import('moleculer-web').ApiSettingsSchema} ApiSettingsSchema API Setting Schema
  */
-
+ 
 module.exports = {
 	name: "api",
 	mixins: [ApiGateway],

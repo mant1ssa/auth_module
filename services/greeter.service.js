@@ -25,7 +25,7 @@ module.exports = {
 	 * Actions
 	 */
 	actions: {
-
+ 
 		/**
 		 * Say a 'Hello' action.
 		 *

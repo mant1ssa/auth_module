@@ -4,7 +4,7 @@ const nodemailer = require('nodemailer');
 // ************* Logging ************** //
 
 // const timestamp = () => '[' + (new Date()).toLocaleString('ru-RU') + ']';
-
+ 
 const smtp = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,

@@ -23,7 +23,7 @@
  *        prefix: "mycache"
  *      }
  *    }
- *  }
+ *  } 
  *
  * @type {import('moleculer').BrokerOptions}
  */

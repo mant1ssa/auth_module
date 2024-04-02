@@ -6,7 +6,7 @@ class ApiError extends Error {
         this.code = code;
         this.statusCode = httpStatusCode;
     }
-
+ 
     describe(description) {
         const describedError = new ApiError(this.code, this.statusCode, this.message);
         describedError.description = description;

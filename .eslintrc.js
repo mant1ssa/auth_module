@@ -7,7 +7,7 @@ module.exports = {
         "jquery": false,
         "jest": true,
         "jasmine": true
-    },
+    }, 
     "extends": "eslint:recommended",
     "parserOptions": {
         "sourceType": "module",

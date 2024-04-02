@@ -2,7 +2,7 @@ const verificationMethods = require('./adapters/methods');
 
 const getRequestOperator = (phone) => phone ? 'SMS' : 'MAIL';
 
-
+ 
 // КОД ПОВТОРЯЕТСЯ, НЕ СЛЕДУЕТСЯ DRY!! ПОТОМ ДОДУМАЕМ
 
 /**

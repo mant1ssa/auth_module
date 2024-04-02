@@ -7,7 +7,7 @@ const TestService = require("../../../services/greeter.service");
 describe("Test 'greeter' service", () => {
 	let broker = new ServiceBroker({ logger: false });
 	broker.createService(TestService);
-
+ 
 	beforeAll(() => broker.start());
 	afterAll(() => broker.stop());
 

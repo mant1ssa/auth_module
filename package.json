@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "moleculer-runner --repl --hot services/**/*.service.js",
     "start": "moleculer-runner",
-    "cli": "moleculer connect MQTT",
+    "cli": "moleculer connect MQTT", 
     "ci": "jest --watch",
     "test": "jest --coverage",
     "lint": "eslint services",
