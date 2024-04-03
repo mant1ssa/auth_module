@@ -1,8 +1,0 @@
-user.name=ItsEasy7
-user.email=fater45top@gmail.com
-core.editor='C:/Program Files/Notepad++/notepad++.exe' -multiInst -notabbar -nosession -noPlugin
-init.defaultbranch=main
-core.repositoryformatversion=0
-core.filemode=true
-core.bare=false
-core.logallrefupdates=true
