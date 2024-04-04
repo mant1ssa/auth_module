@@ -196,7 +196,7 @@ module.exports = {
             },
             async handler(email_address){
                 pool.query("BEGIN")
-                await pool.query('UPDATE user_id FROM users WHERE email_address = $1', [email_address], 'SET is_activated = false');
+                await pool.query('UPDATE users SET is_activated = false WHERE email_address = $1', [email_address]);
             }
         },
         /**
@@ -215,11 +215,11 @@ module.exports = {
             },
             async handler(email_address){
                 pool.query("BEGIN")
-                await pool.query('UPDATE user_id FROM users WHERE email_address = $1', [email_address], 'SET is_activated = true');
+                await pool.query('UPDATE users SET is_activated = true WHERE email_address = $1', [email_address]);
             }
         },
 
-        /**
+    /**
      * Метод для восстановления пароля
      * @param {object} req - данные запроса, тело и строка
      * @param {object} res - ответ
