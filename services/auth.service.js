@@ -8,6 +8,7 @@ const { sendMail } = require('./mail.service.js')
 const verificationModule = require("../verification");
 const emailSend = require("../verification/adapters/methods");
 const ApiErrors = require("./response.service.js");
+const { Context } = require("moleculer");
 dotenv.config();
 
 module.exports = {
@@ -93,7 +94,7 @@ module.exports = {
 				email: "string",
                 password: "string"
 			},
-            async handler(email, password, res) {
+            async handler(email, password, res, ctx) {
                 let isUserVerified;
 
                 try{
@@ -107,7 +108,7 @@ module.exports = {
                     throw ApiErrors.userNotFound;
                 }
 
-                const bearer = createAndBindToken(isUserVerified.rows[0].user_id);
+                const bearer = await ctx.call("token.createbind", isUserVerified.rows[0].user_id);
                 const result = {
                     message: `Вы успешно вошли под именем: ${isUserVerified.rows[0].surname}`,
                     token: bearer
@@ -195,7 +196,7 @@ module.exports = {
             },
             async handler(email_address){
                 pool.query("BEGIN")
-                await pool.query('SELECT user_id FROM users WHERE email_address = $1', [email_address], 'SET is_activated = false');
+                await pool.query('UPDATE user_id FROM users WHERE email_address = $1', [email_address], 'SET is_activated = false');
             }
         },
         /**
@@ -214,9 +215,68 @@ module.exports = {
             },
             async handler(email_address){
                 pool.query("BEGIN")
-                await pool.query('SELECT user_id FROM users WHERE email_address = $1', [email_address], 'SET is_activated = true');
+                await pool.query('UPDATE user_id FROM users WHERE email_address = $1', [email_address], 'SET is_activated = true');
             }
         },
+
+        /**
+     * Метод для восстановления пароля
+     * @param {object} req - данные запроса, тело и строка
+     * @param {object} res - ответ
+     */
+    passwordRecovery: {
+        rest:{
+            path: "/recovery"
+        },
+        params: {
+            surname: "string",
+            name: "string",
+            patronymic: "string",
+            email_address: "string",
+            phone_number: "string",
+            password: "string"
+        },
+        async handler(body, res, ctx){
+
+            const {surname, name, patronymic, email_address, phone_number, password} = body;
+            try{
+                // await connectDb();
+                await pool.query("BEGIN");
+
+                // Можно обойтись без лишнего SELECT если в БД поставить правило уникальности почты и/или номера телефона
+                const isUserVerified = await pool.query('SELECT * FROM users u WHERE u.phone_number = $1 OR u.email_address = $2', [phone_number, email_address]);
+                if(isUserVerified.rowCount > 0){
+                    throw new Error("Такой юзер уже есть")
+                }
+
+                // /* Генерация и привязка токена */
+                // const bearer = await createAndBindToken(userid);
+                // Тут вставка нового юзера и привзяка ему токена, в Юрте там один токен без срока годности, хранят в Редисе
+                const newUserInsert = await pool.query('INSERT INTO users (surname, name, patronymic, email_address, phone_number, password) VALUES ($1, $2, $3, $4, $5, $6)  RETURNING user_id', [surname, name, patronymic, email_address, phone_number, password]);
+                await ctx.call("token.save", newUserInsert.rows[0].user_id, await ctx.call("token.generate", {userId: newUserInsert.rows[0].user_id}));
+
+
+                await pool.query("COMMIT");
+
+            }catch(e){
+                console.log(e)
+
+                await pool.query("ROLLBACK");
+
+                const error = {
+                    message: "Возникла ошибка регистрации, подробнее: " + e,
+                    token: null
+                }
+                res.status(500).json(error)
+            }
+
+            const result = {
+                message: "Успешно добавлен пользователь",
+                token: null
+            }
+            res.status(200).json(result)
+        }
+    },
     },
 
     started() {},
