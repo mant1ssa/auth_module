@@ -121,6 +121,7 @@ module.exports = {
          */
         logout: {
             rest: {
+                method: "GET",
                 path: "/logout"
             },
             async handler(req, res, ctx){
@@ -262,6 +263,30 @@ module.exports = {
             async handler(email_address){
                 await pool.query('UPDATE users SET is_activated = true WHERE email_address = $1', [email_address]);
             }
+        },
+        /**
+         * Получаем пользователей
+         * @param {*} ctx 
+         * @returns 
+         */
+        getUsers: {
+            rest: {
+                method: "GET",
+                path: "/get"
+            },
+            async handler(ctx) {
+                try {
+
+                    const result = await pool.query('SELECT * FROM users');
+
+                    // await pool.end();
+
+                    return { success: true, users: result };
+                } catch (error) {
+                    this.logger.error(`AUTH SERVICE - Error gettings records from table USERS:`, error.message);
+                    throw new ValidationError(`AUTH SERVICE - Error gettings records from table USERS:`, error);
+                }
+            },
         },
 
     /**

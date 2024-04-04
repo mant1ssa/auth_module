@@ -1,82 +1,28 @@
-"use strict";
+const { connectDb } = require('../../../mixins/db.mixin');
 
-const { ServiceBroker } = require("moleculer");
-const DbService = require("moleculer-db");
-const DbMixin = require("../../../mixins/db.mixin");
+// Mocking pool.query
+jest.mock('pg', () => ({
+    Pool: jest.fn(() => ({
+        connect: jest.fn(() => Promise.resolve()),
+        query: jest.fn(() => Promise.resolve({ rows: [{ surname: 'TestSurname' }] })),
+        end: jest.fn(),
+    })),
+}));
 
-describe("Test DB mixin", () => {
+describe('connectDb function', () => {
+    it('should connect to the database and return pool', async () => {
+        // Call the function
+        const result = await connectDb();
 
-	describe("Test schema generator", () => {
-		const broker = new ServiceBroker({ logger: false, cacher: "Memory" });
+        // Expect pool.query to be called with correct parameters
+        expect(result.query).toHaveBeenCalledWith('SELECT * FROM users u WHERE u.user_id = 1');
 
-		beforeAll(() => broker.start());
-		afterAll(() => broker.stop());
+        // Expect the console.log message
+        expect(console.log).toHaveBeenCalledWith('Подключение к базе установлено успешно. Тестовый результат: ', 'TestSurname');
 
-		it("check schema properties", async () => {
-			const schema = DbMixin("my-collection");
+        // Ensure that the pool is returned
+        expect(result).toBeDefined();
+    });
 
-			expect(schema.mixins).toEqual([DbService]);
-			expect(schema.adapter).toBeInstanceOf(DbService.MemoryAdapter);
-			expect(schema.started).toBeDefined();
-			expect(schema.events["cache.clean.my-collection"]).toBeInstanceOf(Function);
-		});
-
-		it("check cache event handler", async () => {
-			jest.spyOn(broker.cacher, "clean");
-
-			const schema = DbMixin("my-collection");
-
-			await schema.events["cache.clean.my-collection"].call({ broker, fullName: "my-service" });
-
-			expect(broker.cacher.clean).toBeCalledTimes(1);
-			expect(broker.cacher.clean).toBeCalledWith("my-service.*");
-		});
-
-		describe("Check service started handler", () => {
-
-			it("should not call seedDB method", async () => {
-				const schema = DbMixin("my-collection");
-
-				schema.adapter.count = jest.fn(async () => 10);
-				const seedDBFn = jest.fn();
- 
-				await schema.started.call({ broker, logger: broker.logger, adapter: schema.adapter, seedDB: seedDBFn });
-
-				expect(schema.adapter.count).toBeCalledTimes(1);
-				expect(schema.adapter.count).toBeCalledWith();
-
-				expect(seedDBFn).toBeCalledTimes(0);
-			});
-
-			it("should call seedDB method", async () => {
-				const schema = DbMixin("my-collection");
-
-				schema.adapter.count = jest.fn(async () => 0);
-				const seedDBFn = jest.fn();
-
-				await schema.started.call({ broker, logger: broker.logger, adapter: schema.adapter, seedDB: seedDBFn });
-
-				expect(schema.adapter.count).toBeCalledTimes(2);
-				expect(schema.adapter.count).toBeCalledWith();
-
-				expect(seedDBFn).toBeCalledTimes(1);
-				expect(seedDBFn).toBeCalledWith();
-			});
-		});
-
-		it("should broadcast a cache clear event", async () => {
-			const schema = DbMixin("my-collection");
-
-			const ctx = {
-				broadcast: jest.fn()
-			};
-
-			await schema.methods.entityChanged(null, null, ctx);
-
-			expect(ctx.broadcast).toBeCalledTimes(1);
-			expect(ctx.broadcast).toBeCalledWith("cache.clean.my-collection");
-		});
-	});
-
+    // Add more test cases for error handling, etc.
 });
-

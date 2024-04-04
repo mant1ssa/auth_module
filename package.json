@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "moleculer-runner --repl --hot services/**/*.service.js",
     "start": "moleculer-runner",
-    "cli": "moleculer connect MQTT", 
+    "cli": "moleculer connect MQTT",
     "ci": "jest --watch",
     "test": "jest --coverage",
     "lint": "eslint services",
@@ -37,7 +37,8 @@
     "mqtt": "^4.3.8",
     "nodemailer": "^6.9.13",
     "pg": "^8.11.4",
-    "redis": "^4.6.13"
+    "redis": "^4.6.13",
+    "sinon": "^17.0.1"
   },
   "engines": {
     "node": ">= 16.x.x"
