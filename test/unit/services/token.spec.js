@@ -91,7 +91,7 @@ describe('Token Service', () => {
             expect(result).to.equal('testToken');
 
             // Expect jwt.sign to be called with correct parameters
-            expect(jwt.sign.calledWith({ userId: 1 }, process.env.TOKENS_SECRET, { expiresIn: '1d' })).to.be.true;
+            expect(jwt.sign.calledWith({ userId: 1 }, process.env.ACCESS_TOKENS_SECRET, { expiresIn: '1d' })).to.be.true;
 
             // Restore stub
             jwt.sign.restore();

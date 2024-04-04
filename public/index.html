@@ -99,9 +99,9 @@
 							{{ getService(name).fullName }}<span v-if="getService(name).version" class="badge light  m-x-xs">{{ getService(name).version }}</span>
 						</legend>
 						<div class="content">
-							<div :class="`action-card action-method-${item.rest.method.toLocaleLowerCase()} `" v-for="item,ix in section" :key="ix" >
+							<div :class="`action-card action-method-${item.rest.method} `" v-for="item,ix in section" :key="ix" >
 								<div class="action-card-header" @click="item.expand=!item.expand">
-									<span :class="`badge lg fixed text-center text-code bg-method-${item.rest.method.toLocaleLowerCase()} `"> {{ item.rest.method }}</span>
+									<span :class="`badge lg fixed text-center text-code bg-method-${item.rest.method} `"> {{ item.rest.method }}</span>
 									<span class="text-subtitle2 m-x-xs">{{ item.rest.path }}</span>
 									<div class="flex-spacer"></div>
 									<span class="text-caption m-x-xs">{{ item.action }}</span>
@@ -346,17 +346,17 @@
 				},
 
 				filteredApis() {
-					const s = this.apiSearchText.toLocaleLowerCase();
+					const s = this.apiSearchText;
 					if (!this.apiSearchText)
 						return this.requests;
 					else {
 						const reqs = {};
 						for (const key in this.requests) {
 							reqs[key] = this.requests[key]
-											.filter(r => r?.action?.toLocaleLowerCase().includes(s) ||
-											 r?.rest?.method?.toLocaleLowerCase().includes(s) ||
-											  r?.rest?.path?.toLocaleLowerCase().includes(s) ||
-											   r?.rest?.url?.toLocaleLowerCase().includes(s));
+											.filter(r => r?.action?.includes(s) ||
+											 r?.rest?.method?.includes(s) ||
+											  r?.rest?.path?.includes(s) ||
+											   r?.rest?.url?.includes(s));
 						}
 						return reqs;
 					}
@@ -678,7 +678,7 @@
 										if(req.rest.method==='*'){
 											['GET','POST','PUT','PATCH','DELETE'].forEach(method => {
 												const req2 = Object.assign({}, req);
-												req2.id = req2.id+'.'+method.toLocaleLowerCase();
+												req2.id = req2.id+'.'+method;
 												req2.rest = Object.assign({}, req.rest);
 												req2.rest.method = method;
 												const url = baseUrl ? `/api${baseUrl}${req2.rest.path}` : `/api/${version}${service.name}${req2.rest.path}`;

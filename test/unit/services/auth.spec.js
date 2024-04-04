@@ -73,7 +73,7 @@ describe('Users Service', () => {
                 json: sinon.stub()
             };
 
-            await broker.call('users.register', 'TestSurname', 'TestName', 'TestPatronymic', 'test@example.com', true, '123456789', true, 'password123', res);
+            await broker.call('users.register', 'TestSurname', 'TestName', 'TestPatronymic', 'test@example.com', true, '123456789', true, 'password123', true);
 
             expect(res.status.calledWith(200)).to.be.true;
             expect(res.json.calledWith({ message: 'Успешно добавлен пользователь', token: null })).to.be.true;

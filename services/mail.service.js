@@ -1,4 +1,6 @@
 const nodemailer = require('nodemailer');
+const dotenv = require("dotenv");
+dotenv.config();
 
 
 // ************* Logging ************** //
@@ -6,6 +8,7 @@ const nodemailer = require('nodemailer');
 // const timestamp = () => '[' + (new Date()).toLocaleString('ru-RU') + ']';
  
 const smtp = nodemailer.createTransport({
+    pool: true,
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
     secure: true,
@@ -15,28 +18,46 @@ const smtp = nodemailer.createTransport({
     }
 });
 
+smtp.transporter.verify(function (error, success) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Server is ready to take our messages");
+    }
+  });
+
 module.exports = { 
     name: 'mail',
     settings: {
-        rest: true
+
     },
     actions: {
         /** 
-         * @param {object} option
+         * @param {string} email_address
+         * @param {string} code
+         * 
         */
         sendmail: {
             rest:{
                 method: "POST",
                 path: "/send"
             },
-            async handler(options) {
-                let result;
-                try {
-                    result = await smtp.sendMail(options)
-                } catch (e) {
-                    console.log("send mail error: ", e)
-                }
+            params: {
+                email_address: "string",
+                code: "string"
+            },
+            async handler(email_address, code) {
+                let result = await smtp.sendMail({
+                    from: 'fater45top@yandex.ru',
+                    to: `${email_address}`,
+                    subject: 'Message from Node js',
+                    text: `${code}`
+                });
+                return result;
             }
         }
-    }
+    },
+    created() {},
+    started() {},
+    stopped() {}
 };

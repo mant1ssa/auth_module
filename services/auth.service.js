@@ -1,16 +1,17 @@
-const dotenv = require("dotenv");
+
 const { pool } = require("../mixins/db.mixin");
 const bcrypt = require("bcrypt");
 const redis = require('../redis/index.js')
 const verificationModule = require("../verification");
 const ApiErrors = require("./response.service.js");
 const { Context } = require("moleculer");
+const dotenv = require("dotenv");
 dotenv.config();
 
 module.exports = {
     name: "users",
     settings: {
-        rest: true
+
     },
 
     actions: {
@@ -124,6 +125,9 @@ module.exports = {
                 method: "GET",
                 path: "/logout"
             },
+            params: {
+
+            },
             async handler(req, res, ctx){
                 console.log(req.query);
                 const { Authorization } = req.query
@@ -203,6 +207,9 @@ module.exports = {
             rest:{
                 method: "POST",
                 path: "/verify"
+            },
+            params: {
+				email: "string",
             },
             async handler(body, res){
                 for(let data in body){ 
@@ -349,7 +356,7 @@ module.exports = {
     },
     },
 
+    created() {},
     started() {},
-
     stopped() {}
 };

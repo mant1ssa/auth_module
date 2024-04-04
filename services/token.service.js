@@ -8,7 +8,7 @@ dotenv.config();
 module.exports = { 
     name: "token",
     settings: {
-        rest: true
+        
     },
     actions: {
     /**
@@ -105,5 +105,8 @@ module.exports = {
             return token;
         }
     }
-}
+},
+created() {},
+started() {},
+stopped() {}
 };
