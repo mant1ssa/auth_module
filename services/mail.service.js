@@ -15,18 +15,28 @@ const smtp = nodemailer.createTransport({
     }
 });
 
-
-const sendMail = async (options) => {
-    let result;
-    try {
-        result = await smtp.sendMail(options)
-    } catch (e) {
-        console.log("send mail error: ", e)
-    }
-}
-
-
 module.exports = { 
-    name : 'mail',
-    sendMail 
+    name: 'mail',
+    settings: {
+        rest: true
+    },
+    actions: {
+        /** 
+         * @param {object} option
+        */
+        sendmail: {
+            rest:{
+                method: "POST",
+                path: "/send"
+            },
+            async handler(options) {
+                let result;
+                try {
+                    result = await smtp.sendMail(options)
+                } catch (e) {
+                    console.log("send mail error: ", e)
+                }
+            }
+        }
+    }
 };

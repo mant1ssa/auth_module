@@ -2,9 +2,6 @@ const verificationMethods = require('./adapters/methods');
 
 const getRequestOperator = (phone) => phone ? 'SMS' : 'MAIL';
 
- 
-// КОД ПОВТОРЯЕТСЯ, НЕ СЛЕДУЕТСЯ DRY!! ПОТОМ ДОДУМАЕМ
-
 /**
  * Метод перенаправляет на методы аутентификации
  * @param {object} body - данные запроса, тело и строка

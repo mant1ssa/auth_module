@@ -1,12 +1,8 @@
 const dotenv = require("dotenv");
 const { pool } = require("../mixins/db.mixin");
-const { createAndBindToken, getTokenData, generateToken } = require("./token.service");
 const bcrypt = require("bcrypt");
-const { response } = require("express");
 const redis = require('../redis/index.js')
-const { sendMail } = require('./mail.service.js')
 const verificationModule = require("../verification");
-const emailSend = require("../verification/adapters/methods");
 const ApiErrors = require("./response.service.js");
 const { Context } = require("moleculer");
 dotenv.config();
@@ -27,8 +23,7 @@ module.exports = {
             path: "/sendmail"
         },
         params: {
-            email: "string",
-            phone_number: "string"
+            email: "string"
         },
         async handler(body, res){
 
@@ -119,6 +114,25 @@ module.exports = {
         },
 
         /**
+         * Метод для выхода из аккаунта
+         * @param {object} req - данные запроса, тело и строка
+         * @param {object} res - ответ
+         * @returns {object}
+         */
+        logout: {
+            rest: {
+                path: "/logout"
+            },
+            async handler(req, res, ctx){
+                console.log(req.query);
+                const { Authorization } = req.query
+                const tokenData = await ctx.call("token.getData", Authorization);
+                await pool.query("UPDATE users SET token = \"\" WHERE user_id = $2", [tokenData,userId]);
+                res.status(200).json(tokenData);
+            }
+        },
+
+        /**
          * Метод для регистрации нового аккаунта
          * 
          * @param {string} surname
@@ -181,6 +195,39 @@ module.exports = {
         },
 
         /**
+         * Верификация
+         * @param {object} body - данные запроса, тело и строка
+         */
+        verify: {
+            rest:{
+                method: "POST",
+                path: "/verify"
+            },
+            async handler(body, res){
+                for(let data in body){ 
+                    if(!data){
+                        delete body.data
+                    }
+                }
+                // Проверяем, все ли поля заполнены
+                if (!(body?.phone?.length ? 1 : 0) ^ (body?.email?.length ? 1 : 0)) {
+                    throw new Error('Для данной операции требуется ОДНО из полей (email, phone)');
+                }
+
+                let response;
+                try {
+                    response = await verificationModule.verifyCredentials(body);
+                } catch (e) {
+                    console.log(e);
+                };
+                console.log(response)
+
+                res.status(200).json(response)
+
+            }
+        },
+
+        /**
          * Деактивация аккаунта
          * 
          * @param {string} email_address
@@ -195,7 +242,6 @@ module.exports = {
                 email_address: "string"
             },
             async handler(email_address){
-                pool.query("BEGIN")
                 await pool.query('UPDATE users SET is_activated = false WHERE email_address = $1', [email_address]);
             }
         },
@@ -214,7 +260,6 @@ module.exports = {
                 email_address: "string"
             },
             async handler(email_address){
-                pool.query("BEGIN")
                 await pool.query('UPDATE users SET is_activated = true WHERE email_address = $1', [email_address]);
             }
         },
