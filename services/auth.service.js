@@ -1,5 +1,5 @@
 
-const { pool } = require("../mixins/db.mixin");
+const {pool} = require("../mixins/db.mixin");
 const bcrypt = require("bcrypt");
 const redis = require('../redis/index.js')
 const verificationModule = require("../verification");
@@ -10,9 +10,7 @@ dotenv.config();
 
 module.exports = {
     name: "users",
-    settings: {
-
-    },
+    settings: {},
 
     actions: {
     /**
@@ -95,19 +93,16 @@ module.exports = {
 
                 try{
                     // connectDb();
-                    isUserVerified = pool.query('SELECT * FROM users u \
+                    isUserVerified = await pool.query('SELECT * FROM users u \
                         WHERE u.email_address = $1 AND u.password = $2', [email, password])
 
                 }catch(e){
                     console.log(e)
-
-                    throw ApiErrors.userNotFound;
                 }
 
-                const bearer = await ctx.call("token.createbind", isUserVerified.rows[0].user_id);
                 const result = {
                     message: `Вы успешно вошли под именем: ${isUserVerified.rows[0].surname}`,
-                    token: bearer
+
                 }
 
                 res.json(result)
@@ -133,6 +128,7 @@ module.exports = {
                 const { Authorization } = req.query
                 const tokenData = await ctx.call("token.getData", Authorization);
                 await pool.query("UPDATE users SET token = \"\" WHERE user_id = $2", [tokenData,userId]);
+                await ctx.call("users.get");
                 res.status(200).json(tokenData);
             }
         },
@@ -140,14 +136,7 @@ module.exports = {
         /**
          * Метод для регистрации нового аккаунта
          * 
-         * @param {string} surname
-         * @param {string} name
-         * @param {string} patronymic
-         * @param {string} email_address
-         * @param {boolean} is_email_address_verified
-         * @param {string} phone_number
-         * @param {boolean} is_phone_number_verified
-         * @param {string} password
+         * @param {object} body
          * 
          * @param {object} res
          */
@@ -167,23 +156,23 @@ module.exports = {
                 password: "string",
                 
 			},
-            async handler(surname, name, patronymic, email_address, phone_number, password, res) {
-                password = await bcrypt.hash(password, 10);
-                let userId;
+            async handler(body, res) {
+                const {surname, name, patronymic, email_address,is_email_address_verified, phone_number, is_phone_number_verified, password} = body;
                 let isactive = true;
+                let userId;
 
                 try{
-                    pool.query("BEGIN");
-                    userId = pool.query('SELECT * FROM users u WHERE u.phone_number = $1 OR u.email_address = $2', [phone_number, email_address]);
+                    await pool.query("BEGIN");
+                    userId = await pool.query('SELECT * FROM users u WHERE u.phone_number = $1 OR u.email_address = $2', [phone_number, email_address]);
                     if(userId.rowCount > 0){
                         throw new Error("Такой юзер уже есть")
                     }
-                    userId =  pool.query('INSERT INTO users (surname, name, patronymic, email_address, is_email_address_verified, phone_number, is_phone_number_verified, password, isactive) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)  RETURNING user_id', [surname, name, patronymic, email_address, is_email_address_verified, phone_number, is_phone_number_verified, password, isactive]);
-                    pool.query("COMMIT");
+                    userId = await pool.query('INSERT INTO users (surname, name, patronymic, email_address, is_email_address_verified, phone_number, is_phone_number_verified, password, isactive) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)  RETURNING user_id', [surname, name, patronymic, email_address, is_email_address_verified, phone_number, is_phone_number_verified, password, isactive]);
+                    await pool.query("COMMIT");
 
                 }catch(e){
                     console.log(e)
-                    pool.query("ROLLBACK");
+                    await pool.query("ROLLBACK");
                     const error = {
                         message: "Возникла ошибка регистрации, подробнее: " + e,
                         token: null

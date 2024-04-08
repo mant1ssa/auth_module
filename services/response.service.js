@@ -15,7 +15,7 @@ class ApiError extends Error {
 }
 
 const ApiErrors = {
-    userNotFound:       new ApiError(100,   404, "Не найдена учётная запись с указанной парой логина и пароля"),
+    userNotFound: new ApiError(100,   404, "Не найдена учётная запись с указанной парой логина и пароля"),
 }
 
 module.exports ={

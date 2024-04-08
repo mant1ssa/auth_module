@@ -22,3 +22,5 @@ const connectDb = async () => {
 
     return pool
 }
+
+module.exports = {pool};

@@ -6,7 +6,7 @@ module.exports = {
 	name: "api",
 	mixins: [ApiGateway],
 	settings: {
-		port: process.env.PORT || 8000,
+		port: process.env.PORT || 3000,
 		routes: [
 			{
 				path: "/api",
