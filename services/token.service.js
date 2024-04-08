@@ -1,5 +1,5 @@
 const dotenv = require("dotenv");
-const { pool } = require("../mixins/db.mixin");
+const {pool: pool} = require("../mixins/db.mixin");
 const jwt = require("jsonwebtoken");
 const { Context } = require("moleculer");
 

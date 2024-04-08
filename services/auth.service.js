@@ -1,5 +1,4 @@
-
-const {pool} = require("../mixins/db.mixin");
+const {pool: pool} = require("../mixins/db.mixin");
 const bcrypt = require("bcrypt");
 const redis = require('../redis/index.js')
 const verificationModule = require("../verification");
