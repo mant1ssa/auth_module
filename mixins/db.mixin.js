@@ -10,17 +10,17 @@ const pool = new Pool({
     port: process.env.PGPORT,
 });
 
-const connectDb = async () => {
-    try {
-        await pool.connect()
-        const res = await pool.query('SELECT * FROM users u WHERE u.user_id = 1')
-        console.log("Подключение к базе установлено успешно. Тестовый результат: ", res.rows[0].surname)
-        // await pool.end()
-    } catch (error) {
-        console.log(error)
+pool.connect((err, client, release) => {
+    if (err) {
+      return console.error('Error acquiring client', err.stack);
     }
-
-    return pool
-}
+    client.query('SELECT * FROM your_table', (err, result) => {
+      release();
+      if (err) {
+        return console.error('Error executing query', err.stack);
+      }
+      console.log(result.rows);
+    });
+  });
 
 module.exports = {pool};

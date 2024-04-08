@@ -1,4 +1,4 @@
-const {pool: pool} = require("../mixins/db.mixin");
+const {pool} = require("../mixins/db.mixin");
 const bcrypt = require("bcrypt");
 const redis = require('../redis/index.js')
 const verificationModule = require("../verification");
@@ -92,8 +92,7 @@ module.exports = {
 
                 try{
                     // connectDb();
-                    isUserVerified = await pool.query('SELECT * FROM users u \
-                        WHERE u.email_address = $1 AND u.password = $2', [email, password])
+                    isUserVerified = await pool.query('SELECT * FROM users u WHERE u.email_address = $1 AND u.password = $2', [email, password])
 
                 }catch(e){
                     console.log(e)
@@ -126,7 +125,7 @@ module.exports = {
                 console.log(req.query);
                 const { Authorization } = req.query
                 const tokenData = await ctx.call("token.getData", Authorization);
-                await pool.query("UPDATE users SET token = \"\" WHERE user_id = $2", [tokenData,userId]);
+                await pool.query('UPDATE users SET token = \"\" WHERE user_id = $2', [tokenData,userId]);
                 await ctx.call("users.get");
                 res.status(200).json(tokenData);
             }
@@ -161,17 +160,17 @@ module.exports = {
                 let userId;
 
                 try{
-                    await pool.query("BEGIN");
+                    await pool.query('BEGIN');
                     userId = await pool.query('SELECT * FROM users u WHERE u.phone_number = $1 OR u.email_address = $2', [phone_number, email_address]);
                     if(userId.rowCount > 0){
                         throw new Error("Такой юзер уже есть")
                     }
                     userId = await pool.query('INSERT INTO users (surname, name, patronymic, email_address, is_email_address_verified, phone_number, is_phone_number_verified, password, isactive) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)  RETURNING user_id', [surname, name, patronymic, email_address, is_email_address_verified, phone_number, is_phone_number_verified, password, isactive]);
-                    await pool.query("COMMIT");
+                    await pool.query('COMMIT');
 
                 }catch(e){
                     console.log(e)
-                    await pool.query("ROLLBACK");
+                    await pool.query('ROLLBACK');
                     const error = {
                         message: "Возникла ошибка регистрации, подробнее: " + e,
                         token: null
