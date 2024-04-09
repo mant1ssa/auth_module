@@ -58,7 +58,7 @@ module.exports = {
         /**
          * Метод для входа по логину
          * @param {object} res
-         * @param {string} email
+         * @param {string} email_address
          * @param {string} password
          * 
          * @return {object} result
@@ -69,26 +69,29 @@ module.exports = {
 				path: "/login"
 			},
             params: {
-				email: "string",
+				email_address: "string",
                 password: "string"
 			},
-            async handler(email, password, res, ctx) {
+            async handler(body, res, ctx) {
                 let isUserVerified;
+                const {email_address, password} = body.params;
 
                 try{
                     // connectDb();
-                    isUserVerified = await pool.query('SELECT * FROM users u WHERE u.email_address = $1 AND u.password = $2', [email, password])
+                    isUserVerified = await pool.query('SELECT * FROM users u WHERE u.email_address = $1 AND u.password = $2', [email_address, password])
 
                 }catch(e){
-                    console.log(e)
+                    const error = {
+                        message: "Возникла ошибка регистрации, подробнее: " + e,
+                        token: null
+                    }
+                    throw(error);
                 }
-
                 const result = {
-                    message: `Вы успешно вошли под именем: ${isUserVerified.rows[0].surname}`,
-
+                    message: "Успешно",
+                    token: null
                 }
-
-                res.json(result)
+                return result;
             }
         },
 
@@ -140,7 +143,8 @@ module.exports = {
                 
 			},
             async handler(body, res) {
-                const {surname, name, patronymic, email_address,is_email_address_verified, phone_number, is_phone_number_verified, password} = body;
+                console.log(body.params);
+                const {surname, name, patronymic, email_address,is_email_address_verified, phone_number, is_phone_number_verified, password} = body.params;
                 let isactive = true;
                 let userId;
 
@@ -149,7 +153,7 @@ module.exports = {
                     if(userId.rowCount > 0){
                         throw new Error("Такой юзер уже есть")
                     }
-                    userId = await pool.query('INSERT INTO users (surname, name, patronymic, email_address, is_email_address_verified, phone_number, is_phone_number_verified, password, isactive) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)  RETURNING user_id', [surname, name, patronymic, email_address, is_email_address_verified, phone_number, is_phone_number_verified, password, isactive]);
+                    userId = await pool.query('INSERT INTO users (surname, name, patronymic, email_address, is_email_address_verified, phone_number, is_phone_number_verified, password, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)  RETURNING user_id', [surname, name, patronymic, email_address, is_email_address_verified, phone_number, is_phone_number_verified, password, isactive]);
                 }catch(e){
                     console.log(e)
                     const error = {
@@ -163,7 +167,7 @@ module.exports = {
                     message: "Успешно добавлен пользователь",
                     token: null
                 }
-                res.status(200).json(result)
+                return result;
             }
         },
 
