@@ -1,6 +1,6 @@
+var pg = require('pg');
 const {pool} = require("../mixins/db.mixin");
 const bcrypt = require("bcrypt");
-const redis = require('../redis/index.js')
 const verificationModule = require("../verification");
 const ApiErrors = require("./response.service.js");
 const { Context } = require("moleculer");
@@ -35,14 +35,10 @@ module.exports = {
             }
 
             // Приставки к ключам
-            let redisPasswordRecoverKey = "yurta:recover_password:";
             let userVerifyCodeKey = "Yurta:user:";
 
             userVerifyCodeKey = userVerifyCodeKey + userId.rows[0].user_id;
-            const userVerifyCode = await redis.get(userVerifyCodeKey);
 
-            redisPasswordRecoverKey = redisPasswordRecoverKey + userId.rows[0].user_id;
-            const redisPasswordRecoverCode = await redis.get(redisPasswordRecoverKey);
 
 
             if(userVerifyCode){
@@ -52,17 +48,6 @@ module.exports = {
                         message: "Правильный код",
                         token: null
                     }
-                    res.status(200).json(response);
-                }else{
-                    res.status(500).json("wrong code")
-                }
-            }
-            if(redisPasswordRecoverCode){
-                if(code == redisPasswordRecoverCode){
-                    const response = {
-                        message: "Правильный код",
-                        token: null
-                    };
                     res.status(200).json(response);
                 }else{
                     res.status(500).json("wrong code")
@@ -160,22 +145,18 @@ module.exports = {
                 let userId;
 
                 try{
-                    await pool.query('BEGIN');
                     userId = await pool.query('SELECT * FROM users u WHERE u.phone_number = $1 OR u.email_address = $2', [phone_number, email_address]);
                     if(userId.rowCount > 0){
                         throw new Error("Такой юзер уже есть")
                     }
                     userId = await pool.query('INSERT INTO users (surname, name, patronymic, email_address, is_email_address_verified, phone_number, is_phone_number_verified, password, isactive) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)  RETURNING user_id', [surname, name, patronymic, email_address, is_email_address_verified, phone_number, is_phone_number_verified, password, isactive]);
-                    await pool.query('COMMIT');
-
                 }catch(e){
                     console.log(e)
-                    await pool.query('ROLLBACK');
                     const error = {
                         message: "Возникла ошибка регистрации, подробнее: " + e,
                         token: null
                     }
-                    res.status(500).json(error)
+                    throw(error);
                 }
 
                 const result = {

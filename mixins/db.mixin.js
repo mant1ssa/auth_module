@@ -1,6 +1,6 @@
 const { Pool } = require("pg");
 const dotenv = require("dotenv");
-dotenv.config(); 
+dotenv.config({ path: '/home/molterez/moleculer-demo/process.env' })
 
 const pool = new Pool({
     user: process.env.PGUSER,
@@ -10,17 +10,25 @@ const pool = new Pool({
     port: process.env.PGPORT,
 });
 
-pool.connect((err, client, release) => {
-    if (err) {
-      return console.error('Error acquiring client', err.stack);
-    }
-    client.query('SELECT * FROM your_table', (err, result) => {
-      release();
-      if (err) {
-        return console.error('Error executing query', err.stack);
-      }
-      console.log(result.rows);
-    });
-  });
+const connectDb = async () => {
+  try {
+      // pool = new Pool({
+      //     user: process.env.PGUSER,
+      //     host: process.env.PGHOST,
+      //     database: process.env.PGDATABASE,
+      //     password: process.env.PGPASSWORD,
+      //     port: process.env.PGPORT,
+      // });
+
+      await pool.connect()
+      const res = await pool.query('SELECT * FROM users u WHERE u.user_id = 1')
+      console.log("Подключение к базе установлено успешно. Тестовый результат: ", res.rows[0].surname)
+      // await pool.end()
+  } catch (error) {
+      console.log(error)
+  }
+
+  return pool
+}
 
 module.exports = {pool};

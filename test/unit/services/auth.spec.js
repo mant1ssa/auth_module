@@ -21,7 +21,6 @@ describe('Users Service', () => {
         it('should send mail with correct code', async () => {
             // Mocking pool.query and redis.get
             sinon.stub(pool, 'query').resolves({ rows: [{ user_id: 1 }] });
-            sinon.stub(redis, 'get').resolves('123456');
 
             const res = {
                 status: sinon.stub().returnsThis(),
@@ -35,7 +34,6 @@ describe('Users Service', () => {
 
             // Restore stubs
             pool.query.restore();
-            redis.get.restore();
         });
 
         // Add more test cases for different scenarios

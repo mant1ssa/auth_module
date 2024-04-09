@@ -1,5 +1,4 @@
 const { pool } = require("../../../../mixins/db.mixin.js");
-const redis = require("../../../../redis/index.js");
 const { sendMail } = require("../../../../services/mail.service.js");
 
 
@@ -41,14 +40,12 @@ const mailVerification = async ({ email, code }) => {
     }
 
     const userVerifyCode = "Yurta:user:" + userId.rows[0].user_id;
-    const isUserVerifyCode = await redis.get(userVerifyCode)
 
     if(!isUserVerifyCode){
 
         /** Код аутентификации */
         const verificationCode = codeGenerator();
 
-        redis.set(userVerifyCode, verificationCode)
 
         /* Формирование сообщения */
         const options = {
@@ -76,8 +73,6 @@ const mailVerification = async ({ email, code }) => {
  */
 const recover = async ({ email, code }) => {
 
-    const redisPasswordRecoverKey = "yurta:recover_password:";
-
     let userId;
     try {
         userId = await pool.query('SELECT user_id FROM users WHERE email_address = $1', [email]);
@@ -87,15 +82,10 @@ const recover = async ({ email, code }) => {
         throw new Error ("no user with email " + email + ", error: ", e);
     }
 
-    const userPswRecoverCode = redisPasswordRecoverKey + userId.rows[0].user_id;
-    const isUserPswRecoverCode = await redis.get(userPswRecoverCode)
-
     if(!isUserPswRecoverCode){
 
         /** Код аутентификации */
         const verificationCode = codeGenerator();
-
-        redis.set(userPswRecoverCode, verificationCode)
 
         /* Формирование сообщения */
         const options = {
