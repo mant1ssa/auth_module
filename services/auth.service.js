@@ -216,13 +216,32 @@ module.exports = {
          */
         disable: {
             rest:{
-                path: "/disable"
+                path: "/disable",
+                method: "POST"
             },
             params: {
                 email_address: "string"
             },
             async handler(email_address){
-                await pool.query('UPDATE users SET is_activated = false WHERE email_address = $1', [email_address]);
+                email_address = email_address.params
+                try {
+                    data = Date.now();
+                    await pool.query('UPDATE users SET is_active = false WHERE email_address = $1', [email_address]);
+                    await pool.query('UPDATE users SET deactivated_at = $1 WHERE email_address=$2', [data, email_address])
+                }catch(e){ 
+                    console.log(e)
+                    const error = {
+                        message: "Возникла ошибка, подробнее: " + e,
+                        token: null
+                    }
+                    throw(error);
+                }
+
+                const result = {
+                    message: "Успешно деактивирован пользователь",
+                    token: null
+                }
+                return result;    
             }
         },
         /**
@@ -234,13 +253,30 @@ module.exports = {
          */
         enable: {
             rest:{
-                path: "/enable"
+                path: "/enable",
+                method: "POST"
             },
             params: {
                 email_address: "string"
             },
             async handler(email_address){
-                await pool.query('UPDATE users SET is_activated = true WHERE email_address = $1', [email_address]);
+                email_address = email_address.params
+                try {
+                    await pool.query('UPDATE users SET is_active = true WHERE email_address = $1', [email_address]);
+                }catch(e){
+                    console.log(e)
+                    const error = {
+                        message: "Возникла ошибка, подробнее: " + e,
+                        token: null
+                    }
+                    throw(error);
+                }
+
+                const result = {
+                    message: "Успешно активирован пользователь",
+                    token: null
+                }
+                return result;    
             }
         },
         /**
