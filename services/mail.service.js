@@ -1,6 +1,5 @@
 const nodemailer = require('nodemailer');
 const dotenv = require("dotenv");
-const e = require('express');
 dotenv.config({ path: '/home/molterez/moleculer-demo/process.env' })
 
 

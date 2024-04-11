@@ -8,7 +8,7 @@ const pool = new Pool({
     password: process.env.PGPASSWORD,
     port: process.env.PGPORT,
 });
-const { sendMail } = require("../../../../services/mail.service.js");
+const { sendMail } = require("../services/mail.service");
 
 
 

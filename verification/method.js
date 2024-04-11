@@ -1,6 +1,6 @@
 "use strict"
 
-const verificationMethodsAdapters = require('../gateways');
+const verificationMethodsAdapters = require('./verify');
  
 module.exports = {
     ACCOUNT_AUTH: {

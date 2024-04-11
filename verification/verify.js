@@ -1,4 +1,4 @@
-const verificationMethods = require('./adapters/methods');
+const verificationMethods = require('./method');
 
 const getRequestOperator = (phone) => phone ? 'SMS' : 'MAIL';
 
