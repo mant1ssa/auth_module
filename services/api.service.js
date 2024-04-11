@@ -1,5 +1,7 @@
 "use strict";
 
+const dotenv = require("dotenv");
+dotenv.config({ path: '/home/molterez/moleculer-demo/process.env' })
 const ApiGateway = require("moleculer-web");
 
 module.exports = {

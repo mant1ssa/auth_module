@@ -29,15 +29,16 @@ module.exports = {
             path: "/sendmail"
         },
         params: {
-            email: "string"
+            email_address: "string",
+            code: "string"
         },
         async handler(body, res){
 
             let userId;
-            const { login, code } = body;
+            const { email_address, code } = body;
 
             try {
-                userId = await pool.query('SELECT user_id FROM users WHERE email_address = $1', [login]);
+                userId = await pool.query('SELECT user_id FROM users WHERE email_address = $1', [email_address]);
             } catch (e) {
                 console.log(e)
             }
@@ -288,8 +289,7 @@ module.exports = {
             }
         },
         /**
-         * Получаем пользователей
-         * @param {*} ctx 
+         * Получаем пользователей 
          * @returns 
          */
         getUsers: {
@@ -297,7 +297,7 @@ module.exports = {
                 method: "GET",
                 path: "/get"
             },
-            async handler(ctx) {
+            async handler() {
                 try {
 
                     const result = await pool.query('SELECT * FROM users');
@@ -306,8 +306,7 @@ module.exports = {
 
                     return { success: true, users: result };
                 } catch (error) {
-                    this.logger.error(`AUTH SERVICE - Error gettings records from table USERS:`, error.message);
-                    throw new ValidationError(`AUTH SERVICE - Error gettings records from table USERS:`, error);
+                    throw ("Произошла ошибка - ", error);
                 }
             },
         },
