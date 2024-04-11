@@ -130,22 +130,6 @@ services:
       - rabbitmq
     networks:
       - internal
-      
-  db.mixin:
-    build:
-      context: .
-    image: yurta2
-    restart: always
-    env_file:
-      - path: ./process.env
-        required: true # default
-    environment:
-      MIXINS: db.mixin.js
-    depends_on:
-      - redis
-      - rabbitmq
-    networks:
-      - internal
 
   traefik:
     image: traefik:v2.4

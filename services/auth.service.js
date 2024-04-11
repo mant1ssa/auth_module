@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-const verificationModule = require("../verification");
+const verificationModule = require("../verification/verify.js");
 const ApiErrors = require("./response.service.js");
 const { Context } = require("moleculer");
 const { Pool } = require("pg");
