@@ -1,11 +1,19 @@
-var pg = require('pg');
-const {pool} = require("../mixins/db.mixin");
 const bcrypt = require("bcrypt");
 const verificationModule = require("../verification");
 const ApiErrors = require("./response.service.js");
 const { Context } = require("moleculer");
+const { Pool } = require("pg");
 const dotenv = require("dotenv");
-dotenv.config();
+dotenv.config({ path: '/home/molterez/moleculer-demo/process.env' })
+
+const pool = new Pool({
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    password: process.env.PGPASSWORD,
+    port: process.env.PGPORT,
+});
+
 
 module.exports = {
     name: "users",

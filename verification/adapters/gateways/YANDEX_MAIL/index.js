@@ -1,4 +1,13 @@
-const { pool } = require("../../../../mixins/db.mixin.js");
+const { Pool } = require("pg");
+const dotenv = require("dotenv");
+dotenv.config({ path: '/home/molterez/moleculer-demo/process.env' })
+const pool = new Pool({
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    password: process.env.PGPASSWORD,
+    port: process.env.PGPORT,
+});
 const { sendMail } = require("../../../../services/mail.service.js");
 
 

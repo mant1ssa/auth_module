@@ -1,10 +1,16 @@
-const dotenv = require("dotenv");
-const {pool: pool} = require("../mixins/db.mixin");
 const jwt = require("jsonwebtoken");
 const { Context } = require("moleculer");
+const { Pool } = require("pg");
+const dotenv = require("dotenv");
 dotenv.config({ path: '/home/molterez/moleculer-demo/process.env' })
 
-dotenv.config();
+const pool = new Pool({
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    password: process.env.PGPASSWORD,
+    port: process.env.PGPORT,
+});
 
 module.exports = { 
     name: "token",
@@ -14,8 +20,8 @@ module.exports = {
     actions: {
     /**
      * Сохрананение refresh-токена у юзера с id = userId
-     * @param {number} userId - id юзера
-     * @param {string} token - refresh-токен
+     * @param {object} body
+     * 
      */
     saveToken: {
         rest: {
@@ -23,16 +29,23 @@ module.exports = {
 			path: "/save"
         },
         params: {
-            userId : "number",
+            email_address : "string",
             token : "string"
         },
-        async handler (userId, token) {
+        async handler (body) {
+            let {email_address, token} = body.params
             try{
-                await pool.query("UPDATE users SET token = $1 WHERE user_id = $2", [token, userId]);
+                await pool.query("UPDATE users SET token = $2 WHERE email_address = $1", [email_address, token]);
             }catch(e){
-                console.log(e);
-
-                throw new Error("Couldn't save token cause ", e);
+                const error = {
+                    message: "Возникла ошибка, подробнее: " + e,
+                    token: null
+                }
+                throw(error);
+            }
+            return response = {
+                message: "Токен успешно сохранен",
+                token: token
             }
         }
     },
@@ -40,28 +53,34 @@ module.exports = {
     /**
     * Генерация пар токенов: accessToken и refreshToken
     * @param {object} body - данные запроса, тело и строка
+    * @param {Context} ctx
     */
     createandbind: {
         rest:{
             method: "GET",
             path: "/createbind"
         },
-        async handler (payload, ctx) {
+        params: {
+            email_address: 'string'
+        },
+        async handler (body, ctx) {
 
             let accessToken, refreshToken
             try{
-                const user_id = payload;
+                const email_address = body.params;
 
                 // const accessToken = jwt.sign({ userId: user_id }, { expiresIn: process.env.TOKENS_SECRET })
-                accessToken = jwt.sign({ userId: user_id }, process.env.ACCESS_TOKENS_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES });
-                refreshToken = jwt.sign({ userId: user_id }, process.env.REFRESH_TOKEN_EXPIRES, { expiresIn: process.env.REFRESH_TOKEN_EXPIRES });
+                accessToken = jwt.sign({ userId: email_address }, process.env.ACCESS_TOKENS_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES });
+                refreshToken = jwt.sign({ userId: email_address }, process.env.REFRESH_TOKEN_EXPIRES, { expiresIn: process.env.REFRESH_TOKEN_EXPIRES });
             
                 // Тут привязываемrefresh-токен к юзеру user_id
-                await ctx.call("token.save", user_id, refreshToken);
+                await ctx.call("token.save", email_address, accessToken);
             }catch(e){
-                console.log(e);
-
-                throw new Error("Error at binding tokens, ", e);
+                const error = {
+                    message: "Возникла ошибка, подробнее: " + e,
+                    token: null
+                }
+                throw(error);
             }
 
             return {

@@ -2,7 +2,16 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const { ServiceBroker } = require('moleculer');
 const jwt = require('jsonwebtoken');
-const { pool } = require("../mixins/db.mixin");
+const dotenv = require("dotenv");
+dotenv.config({ path: '/home/molterez/moleculer-demo/process.env' })
+
+const pool = new Pool({
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    password: process.env.PGPASSWORD,
+    port: process.env.PGPORT,
+});
 
 const TokenService = require('../../../services/token.service')
 
