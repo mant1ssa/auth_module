@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const dotenv = require("dotenv");
-dotenv.config();
+const e = require('express');
+dotenv.config({ path: '/home/molterez/moleculer-demo/process.env' })
 
 
 // ************* Logging ************** //
@@ -8,7 +9,6 @@ dotenv.config();
 // const timestamp = () => '[' + (new Date()).toLocaleString('ru-RU') + ']';
  
 const smtp = nodemailer.createTransport({
-    pool: true,
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
     secure: true,
@@ -33,8 +33,7 @@ module.exports = {
     },
     actions: {
         /** 
-         * @param {string} email_address
-         * @param {string} code
+         * @param {object} body
          * 
         */
         sendmail: {
@@ -46,14 +45,19 @@ module.exports = {
                 email_address: "string",
                 code: "string"
             },
-            async handler(email_address, code) {
-                let result = await smtp.sendMail({
+            async handler(body) {
+                let {email_address, code} = body.params
+                let message = {
                     from: 'fater45top@yandex.ru',
                     to: `${email_address}`,
                     subject: 'Message from Node js',
-                    text: `${code}`
-                });
-                return result;
+                    text: `${code}`,
+                }
+                let info = await smtp.sendMail(message)
+                if (info.response.substr(0, 3) == '250') {
+                    return `Письмо успешно отправлено на адрес ${email_address}!`
+                }
+                return `Ошибка отправки письма на адрес ${email_address}!`
             }
         }
     },

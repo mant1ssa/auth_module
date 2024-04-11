@@ -2,6 +2,7 @@ const dotenv = require("dotenv");
 const {pool: pool} = require("../mixins/db.mixin");
 const jwt = require("jsonwebtoken");
 const { Context } = require("moleculer");
+dotenv.config({ path: '/home/molterez/moleculer-demo/process.env' })
 
 dotenv.config();
 
