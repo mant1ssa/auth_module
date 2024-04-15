@@ -1,7 +1,7 @@
 {
-  "name": "moleculer-demo",
+  "name": "yurtarb",
   "version": "1.0.0",
-  "description": "My Moleculer-based microservices project",
+  "description": "",
   "scripts": {
     "dev": "moleculer-runner --repl --hot services/**/*.service.js",
     "start": "moleculer-runner",
@@ -34,7 +34,6 @@
     "moleculer": "^0.14.26",
     "moleculer-db": "^0.8.20",
     "moleculer-web": "^0.10.4",
-    "mqtt": "^4.3.8",
     "nodemailer": "^6.9.13",
     "pg": "^8.11.4",
     "sinon": "^17.0.1"

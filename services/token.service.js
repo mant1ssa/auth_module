@@ -1,8 +1,10 @@
 const jwt = require("jsonwebtoken");
-const { Context } = require("moleculer");
+const { Context, broker } = require("moleculer");
 const { Pool } = require("pg");
 const dotenv = require("dotenv");
 dotenv.config({ path: '/home/molterez/moleculer-demo/process.env' })
+
+const ctx = new Context(broker);
 
 const pool = new Pool({
     user: process.env.PGUSER,
@@ -63,9 +65,9 @@ module.exports = {
         params: {
             email_address: 'string'
         },
-        async handler (body, ctx) {
+        async handler (body) {
 
-            let accessToken, refreshToken
+            let accessToken, refreshToken = 2
             try{
                 const email_address = body.params;
 
@@ -74,7 +76,7 @@ module.exports = {
                 refreshToken = jwt.sign({ userId: email_address }, process.env.REFRESH_TOKEN_EXPIRES, { expiresIn: process.env.REFRESH_TOKEN_EXPIRES });
             
                 // Тут привязываемrefresh-токен к юзеру user_id
-                await ctx.call("token.save", email_address, accessToken);
+                await ctx.call("token.save", {email_address, accessToken});
             }catch(e){
                 const error = {
                     message: "Возникла ошибка, подробнее: " + e,

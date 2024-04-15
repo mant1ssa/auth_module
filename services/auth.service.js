@@ -108,6 +108,7 @@ module.exports = {
          * Метод для выхода из аккаунта
          * @param {object} req - данные запроса, тело и строка
          * @param {object} res - ответ
+         * @param {Context} ctx
          * @returns {object}
          */
         logout: {
