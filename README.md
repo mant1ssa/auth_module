@@ -2,8 +2,6 @@
 
 npm i
 
-redis-server
+docker compose build
 
-npm start dev
-
-# auth_module 
+docker compose up -d
