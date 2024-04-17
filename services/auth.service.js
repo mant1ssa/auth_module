@@ -150,7 +150,7 @@ module.exports = {
 			},
             async handler(body, res) {
                 console.log(body.params);
-                const {surname, name, patronymic, email_address,is_email_address_verified, phone_number, is_phone_number_verified, password} = body.params;
+                let {surname, name, patronymic, email_address,is_email_address_verified, phone_number, is_phone_number_verified, password} = body.params;
                 let isactive = true;
                 let userId;
                 const salt = await bcrypt.genSalt(10);
