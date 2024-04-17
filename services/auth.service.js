@@ -1,9 +1,10 @@
 const bcrypt = require("bcrypt");
 const verificationModule = require("../verification/verify.js");
 const ApiErrors = require("./response.service.js");
-const { Context } = require("moleculer");
+const {Context} = require("moleculer");
 const { Pool } = require("pg");
 const dotenv = require("dotenv");
+const method = require("../verification/method.js");
 dotenv.config({ path: '/home/molterez/moleculer-demo/process.env' })
 
 const pool = new Pool({
@@ -18,7 +19,10 @@ const pool = new Pool({
 module.exports = {
     name: "users",
     settings: {},
-
+    actions: {
+        sendMail: "mail.sendmail"
+    },
+    validator: true,
     actions: {
     /**
      * Отправка кода из СМС/Почты
@@ -33,12 +37,12 @@ module.exports = {
             code: "string"
         },
         async handler(body, res){
-
             let userId;
             const { email_address, code } = body;
 
             try {
                 userId = await pool.query('SELECT user_id FROM users WHERE email_address = $1', [email_address]);
+
             } catch (e) {
                 console.log(e)
             }
@@ -48,11 +52,9 @@ module.exports = {
 
             userVerifyCodeKey = userVerifyCodeKey + userId.rows[0].user_id;
 
-
-
             if(userVerifyCode){
                 if(code == userVerifyCode){
-                    login.includes('@') ? await pool.query("UPDATE users SET is_email_address_verified = true WHERE email_address = $1", [login]) : await pool.query("UPDATE users SET is_phone_verified = true WHERE phone_number = $1", [login])
+                    login.includes('@') ? await pool.query("UPDATE users SET is_email_address_verified = true WHERE email_address = $1", [email_address]) : await pool.query("UPDATE users SET is_phone_verified = true WHERE phone_number = $1", [email_address])
                     const response = {
                         message: "Правильный код",
                         token: null
@@ -66,35 +68,31 @@ module.exports = {
     },
         /**
          * Метод для входа по логину
-         * @param {object} res
          * @param {string} email_address
          * @param {string} password
          * 
          * @return {object} result
          */ 
         login: {
-            rest: {
-				method: "POST",
-				path: "/login"
-			},
+            rest:{
+              path: "/login",
+              method: "POST"  
+            },
             params: {
 				email_address: "string",
-                password: "string"
-			},
-            async handler(body, res, ctx) {
-                let isUserVerified;
-                const {email_address, password} = body.params;
-
+                password: "string",
+            },
+            async handler(ctx) {
                 try{
                     // connectDb();
-                    isUserVerified = await pool.query('SELECT * FROM users u WHERE u.email_address = $1 AND u.password = $2', [email_address, password])
+                    let hashedPass = await pool.query('SELECT password FROM users u WHERE u.email_address = $1 OR u.password = $2', [ctx.params.email_address, ctx.params.password]);
+                    if(bcrypt.compare(password, hashedPass)){
+                        let jwttoken = ctx.call();
+                    }else{
 
-                }catch(e){
-                    const error = {
-                        message: "Возникла ошибка регистрации, подробнее: " + e,
-                        token: null
                     }
-                    throw(error);
+                }catch(e){
+                    throw(e);
                 }
                 const result = {
                     message: "Успешно",
@@ -108,7 +106,6 @@ module.exports = {
          * Метод для выхода из аккаунта
          * @param {object} req - данные запроса, тело и строка
          * @param {object} res - ответ
-         * @param {Context} ctx
          * @returns {object}
          */
         logout: {
@@ -143,20 +140,21 @@ module.exports = {
 			},
             params: {
                 surname: "string", 
-                name: "string", 
+                name: { type: "string", min: 2 }, 
                 patronymic: "string", 
                 email_address: "string", 
-                is_email_address_verified: "boolean",
-                phone_number: "string", 
-                is_phone_number_verified: "boolean",
+                is_email_address_verified: {type: "boolean", optional: true},
+                phone_number: { type: "string", min: 10, max: 10, optional: true}, 
+                is_phone_number_verified: {type: "boolean", optional: true},
                 password: "string",
-                
 			},
             async handler(body, res) {
                 console.log(body.params);
                 const {surname, name, patronymic, email_address,is_email_address_verified, phone_number, is_phone_number_verified, password} = body.params;
                 let isactive = true;
                 let userId;
+                const salt = await bcrypt.genSalt(10);
+                password = await bcrypt.hash(password, salt);
 
                 try{
                     userId = await pool.query('SELECT * FROM users u WHERE u.phone_number = $1 OR u.email_address = $2', [phone_number, email_address]);
@@ -232,12 +230,17 @@ module.exports = {
             params: {
                 email_address: "string"
             },
-            async handler(email_address){
-                email_address = email_address.params
+            async handler(body){
+                let {email_address} = body.params
                 try {
-                    data = Date.now();
+                    userId = await pool.query('SELECT * FROM users WHERE u.email_address = $1', [email_address]);
+                    if(userId.rowCount > 0){
+                        data = Date.now();
                     await pool.query('UPDATE users SET is_active = false WHERE email_address = $1', [email_address]);
                     await pool.query('UPDATE users SET deactivated_at = $1 WHERE email_address=$2', [data, email_address])
+                    }else{
+                    throw new Error("Такого пользователя нету")
+                }
                 }catch(e){ 
                     console.log(e)
                     const error = {
@@ -256,10 +259,6 @@ module.exports = {
         },
         /**
          * Активация аккаунта
-         * 
-         * @param {string} email_address
-         * 
-         * 
          */
         enable: {
             rest:{
@@ -269,10 +268,18 @@ module.exports = {
             params: {
                 email_address: "string"
             },
-            async handler(email_address){
-                email_address = email_address.params
+            async handler(ctx){
+                let email_address = ctx.params.email_address;
                 try {
-                    await pool.query('UPDATE users SET is_active = true WHERE email_address = $1', [email_address]);
+                    let code = Math.floor(100000 + Math.random() * 900000).toString();
+                    userSendedCode = await ctx.call("mail.sendmail", {email_address, code});
+                    userId = await pool.query('SELECT email_address FROM users WHERE email_address = $1', [email_address]);
+                    console.log(userId);
+                    if(userId.rowCount > 0){
+                        await pool.query('UPDATE users SET is_active = true WHERE email_address = $1', [email_address]);
+                    }else{
+                        throw new Error("Такого пользователя нету")
+                    }
                 }catch(e){
                     console.log(e)
                     const error = {
@@ -322,9 +329,6 @@ module.exports = {
             path: "/recovery"
         },
         params: {
-            surname: "string",
-            name: "string",
-            patronymic: "string",
             email_address: "string",
             phone_number: "string",
             password: "string"
@@ -333,6 +337,7 @@ module.exports = {
 
             const {surname, name, patronymic, email_address, phone_number, password} = body;
             try{
+                const ctx = Context.meta;
                 // await connectDb();
                 await pool.query("BEGIN");
 

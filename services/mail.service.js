@@ -6,7 +6,7 @@ dotenv.config({ path: '/home/molterez/moleculer-demo/process.env' })
 // ************* Logging ************** //
 
 // const timestamp = () => '[' + (new Date()).toLocaleString('ru-RU') + ']';
- 
+
 const smtp = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
@@ -19,9 +19,9 @@ const smtp = nodemailer.createTransport({
 
 smtp.transporter.verify(function (error, success) {
     if (error) {
-      console.log(error);
+      throw(error);
     } else {
-      console.log("Server is ready to take our messages");
+      return("Server is ready to take our messages");
     }
   });
 
@@ -32,7 +32,6 @@ module.exports = {
     },
     actions: {
         /** 
-         * @param {object} body
          * 
         */
         sendmail: {
@@ -44,19 +43,19 @@ module.exports = {
                 email_address: "string",
                 code: "string"
             },
-            async handler(body) {
-                let {email_address, code} = body.params
+            async handler(ctx) {
                 let message = {
-                    from: 'fater45top@yandex.ru',
-                    to: `${email_address}`,
-                    subject: 'Message from Node js',
-                    text: `${code}`,
+                    from: 'ItsEasy777@yandex.ru',
+                    to: `${ctx.params.email_address}`,
+                    subject: 'Ваш код авторизации',
+                    text: `Сегодня настолько крутой день, что твой код - ${ctx.params.code}`,
                 }
-                let info = await smtp.sendMail(message)
+                
+                let info = await smtp.sendMail(message);
                 if (info.response.substr(0, 3) == '250') {
-                    return `Письмо успешно отправлено на адрес ${email_address}!`
+                    return `Письмо успешно отправлено на адрес ${ctx.params.email_address}!`
                 }
-                return `Ошибка отправки письма на адрес ${email_address}!`
+                return `Ошибка отправки письма на адрес ${ctx.params.email_address}!`
             }
         }
     },
