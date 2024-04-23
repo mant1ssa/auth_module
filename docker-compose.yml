@@ -19,26 +19,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.api-gw.rule=PathPrefix(`/`)"
       - "traefik.http.services.api-gw.loadbalancer.server.port=3000"
- 
-  
-  postgres:
-    image: postgres:16.2
-    restart: always
-    env_file:
-      - path: ./process.env
-        required: true # default
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - data:/var/lib/postgresql/data
     
-  redis:
-    image: redis:alpine
-
-
-  rabbitmq:
-    image: rabbitmq:3
-
-
   auth.service:
     build:
       context: .
@@ -59,6 +40,26 @@ services:
     depends_on:
       - redis
       - rabbitmq
+  
+  notification.service:
+    build:
+      context: .
+    image: yurtarb:latest
+    restart: always
+    env_file:
+      - path: ./process.env
+        required: true # default
+    environment:
+      SERVICES: notification.service.js
+    volumes:
+      -  data:/data
+    links:
+      - postgres:16.2
+    depends_on:
+      - redis
+      - rabbitmq
+    expose:
+      - 3030
 
   mail.service:
     build:
@@ -121,6 +122,24 @@ services:
       - rabbitmq
     expose:
       - 3030
+ 
+  
+  postgres:
+    image: postgres:16.2
+    restart: always
+    env_file:
+      - path: ./process.env
+        required: true # default
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - data:/var/lib/postgresql/data
+    
+  redis:
+    image: redis:alpine
+
+
+  rabbitmq:
+    image: rabbitmq:3
 
            
   traefik:
