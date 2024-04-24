@@ -15,9 +15,9 @@ const pool = new Pool({
 });
 
 const smtp = nodemailer.createTransport({
-    // pool: true,
+    // pool: true ,
     host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
+    port: 465,
     secure: true,
     auth: {
         user: process.env.EMAIL_SMTP_ADDRESS,
@@ -94,10 +94,10 @@ module.exports = {
          * 
          * @return {object} result
          */ 
-        sendNotification: {
+        sendNotificationEmal: {
             rest: {
                 method: "POST",
-                path: "/notify"
+                path: "/notifyEmail"
             },
             params: {
                 receiver: "string",
@@ -105,22 +105,48 @@ module.exports = {
             },
             async handler(body){
 
-                console.log(body)
-                let message = {
+                const { receiver, message } = body.params;
+
+                let options = {
                     from: 'NRnomore@yandex.ru',
-                    to: 'bulat2020205@gmail.com',
+                    to: receiver,
                     subject: 'ural',
-                    html: `<p>Hello world</p>`,
+                    html: `<p>${message}</p>`,
                 };
     
-                console.log(message)
-    
-                let res = await smtp.sendMail(message);
-
-                return res;
+                smtp.sendMail(options)
+                    .then(res => {
+                        return `Сообщение от ${receiver}: ${message}`;
+                    })
+                    .catch(err => {
+                        return "Ошибка отправки: " + err;
+                    })
                 
             }
-        }
+        },
+
+        /**
+         * Метод для добавления нового уведомления
+         * @param {string} email_address
+         * @param {string} password
+         * 
+         * @return {object} result
+         */ 
+        sendNotificationSMS: {
+            rest: {
+                method: "POST",
+                path: "/notifySMS"
+            },
+            params: {
+                receiver: "string",
+                message: "string"
+            },
+            async handler(body){
+
+                await megafon.sms({ to: parseInt(body.params.receiver), message: body.params.message });
+                
+            }
+        },
 
     },
 
